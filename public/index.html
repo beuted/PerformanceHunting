@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>PokeNotifier</title>
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        height: 400px;
+        width: 400px;
+      }
+    </style>
+    <script type="text/javascript" src="bower_components/jquery/dist/jquery.js"></script>
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <h1>PokeNotifier</h1>
+    <div id="map"></div>
+    <button id="search_button">search</button>
+    <div id="time"></div>
+    <div id="notifications"></div>
+    <script>
+        var socket = io.connect('http://localhost:3000');
+
+        socket.on('notification', function (json) {
+          // convert the json string into a valid javascript object
+          var msg = json.data;
+
+          $('#notifications').append('<span>' + msg + '</span><hr>');
+          $('#time').html('Last Update:' + new Date());
+        });
+
+        var map;
+        function initMap() {
+          var myLatLng = {lat: -25.363, lng: 131.044};
+
+          map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 4,
+            center: myLatLng
+          });
+
+          var marker = new google.maps.Marker({
+            position: myLatLng,
+            map: map,
+            title: 'Hello World!'
+          });
+        }
+
+        $("#search_button").click(function(e){
+            e.preventDefault();
+            var marker = new google.maps.Marker({
+                position: {lat: -25.363, lng: 131.000},
+                map: map
+            });
+        });
+
+    </script>
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=<YOURKEYHERE>&signed_in=true&callback=initMap"></script>
+</body>
+</html>
