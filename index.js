@@ -4,6 +4,7 @@ var PokemonGO = require('pokemon-go-node-api')
 var app = express();
 var port = process.env.PORT || 3000;
 var pokeio = new PokemonGO.Pokeio();
+var config = require('./config');
 
 // serve static files
 app.use(express.static('public'));
@@ -28,9 +29,9 @@ var location = {
     name: process.env.PGO_LOCATION || '9 rue de rochechouart'
 };
 
-var username = process.env.PGO_USERNAME || '';
-var password = process.env.PGO_PASSWORD || '';
-var provider = process.env.PGO_PROVIDER || 'ptc';
+var username = process.env.PGO_USERNAME || config.PGO_USERNAME;
+var password = process.env.PGO_PASSWORD || config.PGO_PASSWORD;
+var provider = process.env.PGO_PROVIDER || config.PGO_PROVIDER;
 
 io.sockets.on('connection', (socket) => {
     pokeio.init(username, password, location, provider, function(err) {
