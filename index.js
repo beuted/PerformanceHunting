@@ -6,7 +6,7 @@ var port = process.env.PORT || 3000;
 var pokeio = new PokemonGO.Pokeio();
 var config = require('./config');
 
-// serve static files
+// Serve static files
 app.use(express.static('public'));
 
 
@@ -22,11 +22,11 @@ app.get('/api/pokemons', (req, res) => {
     res.end();
 });
 
-//Pokemon api
+// Pokemon api logic
 
 var location = {
     type: 'name',
-    name: process.env.PGO_LOCATION || '9 rue de rochechouart'
+    name: process.env.PGO_LOCATION || '41.38608229923676, 2.1864616870880127'
 };
 
 var username = process.env.PGO_USERNAME || config.PGO_USERNAME;
