@@ -11,8 +11,8 @@
         padding: 0;
       }
       #map {
-        height: 400px;
-        width: 400px;
+        height: 800px;
+        width: 800px;
       }
     </style>
     <script type="text/javascript" src="bower_components/jquery/dist/jquery.js"></script>
@@ -21,7 +21,6 @@
 <body>
     <h1>PokeNotifier</h1>
     <div id="map"></div>
-    <button id="search_button">search</button>
     <div id="time"></div>
     <div id="notifications"></div>
     <script>
@@ -50,14 +49,6 @@
             title: 'Hello World!'
           });
         }
-
-        $("#search_button").click(function(e){
-            e.preventDefault();
-            var marker = new google.maps.Marker({
-                position: {lat: -25.363, lng: 131.000},
-                map: map
-            });
-        });
 
     </script>
     <script async defer
