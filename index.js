@@ -1,5 +1,6 @@
 var express = require('express');
 var PokemonGO = require('pokemon-go-node-api')
+var _ = require('lodash');
 
 var app = express();
 var port = process.env.PORT || 3000;
