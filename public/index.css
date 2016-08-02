@@ -1,0 +1,19 @@
+html, body {
+	height: 100%;
+	margin: 0;
+	padding: 0;
+}
+
+h1 {
+	text-align: center;
+}
+
+.time {
+	text-align: center;
+}
+
+.map {
+	height: 800px;
+	width: 800px;
+	margin: auto;
+}
