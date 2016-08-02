@@ -21,33 +21,44 @@
 <body>
     <h1>PokeNotifier</h1>
     <div id="map"></div>
-    <div id="time"></div>
+    <div id="time">Waiting for a pokemon to be found in your area...</div>
     <div id="notifications"></div>
     <script>
         var socket = io.connect('http://localhost:3000');
 
-        socket.on('notification', function (json) {
-          // convert the json string into a valid javascript object
-          var msg = json.data;
+        socket.on('connect', function() {
+            console.log('[s] socket connected');
+        })
 
-          $('#notifications').append('<span>' + msg + '</span><hr>');
-          $('#time').html('Last Update:' + new Date());
+        socket.on('new_pokemon', function (json) {
+            var pokemon = json.pokemon;
+            console.log("[+] " + pokemon.name + " found");
+            $('#time').html('Last Update:' + new Date());
+
+            var marker = new google.maps.Marker({
+                position: { lat: pokemon.lat, lng: pokemon.lng },
+                map: map,
+                title: pokemon.name + " - expire in: " + pokemon.expirationTimeMs + " ms",
+                icon: {
+                    url: pokemon.image,
+                    scaledSize: new google.maps.Size(30, 30),
+                    origin: new google.maps.Point(0, 0),
+                    anchor: new google.maps.Point(15, 15)
+                }
+            });
+            $('#time').html('Last Update:' + new Date());
         });
 
         var map;
         function initMap() {
-          var myLatLng = {lat: -25.363, lng: 131.044};
+            var myPosition = { lat: 41.384593, lng: 2.185247 };
+            var gMapOptions = {
+                zoom: 16,
+                center: myPosition,
+                mapTypeId: google.maps.MapTypeId.ROADMAP
+            };
 
-          map = new google.maps.Map(document.getElementById('map'), {
-            zoom: 4,
-            center: myLatLng
-          });
-
-          var marker = new google.maps.Marker({
-            position: myLatLng,
-            map: map,
-            title: 'Hello World!'
-          });
+            map = new google.maps.Map(document.getElementById('map'), gMapOptions);
         }
 
     </script>
