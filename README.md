@@ -4,7 +4,7 @@ Let's catch 'em all yo!
 
 ## Running the app
 
-Complete the config.js app with some pokemon go credentials (not your maina ccount one obviously...)
+Complete the config.js app with some pokemon go credentials (not your main account one obviously...)
 
 ## If you are on windows
 
