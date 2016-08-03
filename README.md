@@ -10,6 +10,7 @@ Let's catch 'em all yo!
 
 ## Tout doux
 
+* Add push notifications when pokemon pops
 * Use `expirationTimeMs` to Show time remaining in the UI and remove the pokemon at the right time
 * Allow user to change his position from the UI
 * Allow user to enter his account on the front and use it to make calls to pokemon API
