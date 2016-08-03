@@ -24,7 +24,6 @@ app.get('/api/pokemons', (req, res) => {
 });
 
 // Pokemon api logic
-
 var location = {
     type: 'name',
     name: process.env.PGO_LOCATION || '41.38608229923676, 2.1864616870880127'
@@ -41,24 +40,23 @@ pokeio.init(username, password, location, provider, function(err) {
     console.log('[i] lat/long/alt: : ' + pokeio.playerInfo.latitude + ' ' + pokeio.playerInfo.longitude + ' ' + pokeio.playerInfo.altitude);
 
 // Note(b.jehanno) Code commented cause of throttling issue (connection + first call to profile are too close to eachother)
-/*    pokeio.GetProfile(function(err, profile) {
-        if (err) throw err;
+//    pokeio.GetProfile(function(err, profile) {
+//        if (err) throw err;
+//
+//        console.log('[i] Username: ' + profile.username);
+//        console.log('[i] Poke Storage: ' + profile.poke_storage);
+//        console.log('[i] Item Storage: ' + profile.item_storage);
+//
+//        var poke = 0;
+//        if (profile.currency[0].amount) {
+//            poke = profile.currency[0].amount;
+//        }
+//
+//        console.log('[i] Pokecoin: ' + poke);
+//        console.log('[i] Stardust: ' + profile.currency[1].amount);
+//    });
 
-        console.log('[i] Username: ' + profile.username);
-        console.log('[i] Poke Storage: ' + profile.poke_storage);
-        console.log('[i] Item Storage: ' + profile.item_storage);
-
-        var poke = 0;
-        if (profile.currency[0].amount) {
-            poke = profile.currency[0].amount;
-        }
-
-        console.log('[i] Pokecoin: ' + poke);
-        console.log('[i] Stardust: ' + profile.currency[1].amount);
-    });*/
-
-    var pokemonsSeen = []; //TODO(b.jehanno): Store this in a fancy DB (elastic search ?)
-
+    var allPokemonsSeen = []; //TODO(b.jehanno): Store this in a fancy DB (elastic search ?)
     io.sockets.on('connection', (socket) => {
         console.log('[s] client connected');
         setInterval(() => {
@@ -66,15 +64,16 @@ pokeio.init(username, password, location, provider, function(err) {
                 if(err)
                     console.error(err);
 
+                var pokemonsSeen = [];
                 for (var i = hb.cells.length - 1; i >= 0; i--) {
                     for (var j = hb.cells[i].MapPokemon.length - 1; j >= 0; j--)
                     {
                         var currentPokemon = hb.cells[i].MapPokemon[j];
 
-                        if (_.includes(pokemonsSeen, currentPokemon.EncounterId.toNumber()))
+                        if (_.includes(allPokemonsSeen, currentPokemon.EncounterId.toNumber()))
                             continue;
 
-                        pokemonsSeen.push(currentPokemon.EncounterId.toNumber());
+                        allPokemonsSeen.push(currentPokemon.EncounterId.toNumber());
 
                         var pokedexInfo = pokeio.pokemonlist[parseInt(currentPokemon.PokedexTypeId)-1]; //TODO(b.jehanno): let's store in client
                         var pokemon = {
@@ -85,10 +84,12 @@ pokeio.init(username, password, location, provider, function(err) {
                             expirationTimeMs: currentPokemon.ExpirationTimeMs.toNumber(),
                             image: pokedexInfo.img
                         }
-                        socket.volatile.emit('new_pokemon', { pokemon: pokemon });
+                        pokemonsSeen.push(pokemon);
                         console.log('[+] ' + pokedexInfo.name + ' found: ' + JSON.stringify(pokemon));
                     }
                 }
+                if (pokemonsSeen.length > 0)
+                    socket.volatile.emit('new_pokemons', pokemonsSeen);
             });
         }, 10000);
     });

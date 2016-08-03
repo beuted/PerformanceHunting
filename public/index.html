@@ -12,9 +12,8 @@
 </head>
 <body>
     <h1>PokeNotifier</h1>
-    <div id="map"></div>
-    <div id="time">Waiting for a pokemon to be found in your area...</div>
-    <div id="notifications"></div>
+    <div id="time" class="time">Waiting for a pokemon to be found in your area...</div>
+    <div id="map" class="map"></div>
     <script>
         var socket = io.connect('http://localhost:3000');
 
@@ -22,22 +21,24 @@
             console.log('[s] socket connected');
         })
 
-        socket.on('new_pokemon', function (json) {
-            var pokemon = json.pokemon;
-            console.log("[+] " + pokemon.name + " found");
-            $('#time').html('Last Update:' + new Date());
+        socket.on('new_pokemons', function (pokemonsJson) {
+            for (var i = 0; i < pokemonsJson.length; i++) {
+                var pokemon = pokemonsJson[i];
+                console.log("[+] " + pokemon.name + " found");
+                $('#time').html('Last Update:' + new Date());
 
-            var marker = new google.maps.Marker({
-                position: { lat: pokemon.lat, lng: pokemon.lng },
-                map: map,
-                title: pokemon.name + " - expire in: " + pokemon.expirationTimeMs + " ms",
-                icon: {
-                    url: pokemon.image,
-                    scaledSize: new google.maps.Size(30, 30),
-                    origin: new google.maps.Point(0, 0),
-                    anchor: new google.maps.Point(15, 15)
-                }
-            });
+                var marker = new google.maps.Marker({
+                    position: { lat: pokemon.lat, lng: pokemon.lng },
+                    map: map,
+                    title: pokemon.name + " - expire in: " + pokemon.expirationTimeMs + " ms",
+                    icon: {
+                        url: pokemon.image,
+                        scaledSize: new google.maps.Size(30, 30),
+                        origin: new google.maps.Point(0, 0),
+                        anchor: new google.maps.Point(15, 15)
+                    }
+                });
+            }
             $('#time').html('Last Update:' + new Date());
         });
 
