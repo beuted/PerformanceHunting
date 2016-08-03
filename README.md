@@ -4,7 +4,9 @@ Let's catch 'em all yo!
 
 ## Running the app
 
-Complete the config.js app with some pokemon go credentials (not your main account one obviously...)
+* Complete the config.js app with some pokemon go credentials (not your main account one obviously...)
+* Run `node index.js`
+* Visit `localhost:3000`
 
 ## Tout doux
 
