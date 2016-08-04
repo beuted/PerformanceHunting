@@ -15,7 +15,7 @@
     <div id="time" class="time">Waiting for a pokemon to be found in your area...</div>
     <div id="map" class="map"></div>
     <script>
-        var socket = io.connect('http://localhost:3000');
+        var socket = io();
 
         socket.on('connect', function() {
             console.log('[s] socket connected');
