@@ -26,7 +26,7 @@ app.get('/api/pokemons', (req, res) => {
 // Pokemon api logic
 var location = {
     type: 'name',
-    name: process.env.PGO_LOCATION || '41.38608229923676, 2.1864616870880127'
+    name: process.env.PGO_LOCATION || '48.87929, 2.33203'
 };
 
 var username = process.env.PGO_USERNAME || config.PGO_USERNAME;
