@@ -148,24 +148,32 @@
             socket.on('new_pokemons', function (pokemonsJson) {
                 for (var i = 0; i < pokemonsJson.length; i++) {
                     var pokemon = pokemonsJson[i];
+                    pokemon.foundDate = new Date();
 
                     if (_.includes(encounterIdsSeen, pokemon.encounterId))
                         continue;
 
                     encounterIdsSeen.push(pokemon.encounterId);
-                    var date = new Date();
-                    sendLog(pokemon.name + ' found at ' + date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds());
+                    sendLog(pokemon.name + ' found at ' + pokemon.foundDate.getHours() + ':'
+                            + pokemon.foundDate.getMinutes() + ':' + pokemon.foundDate.getSeconds());
 
                     var marker = new google.maps.Marker({
                         position: { lat: pokemon.lat, lng: pokemon.lng },
                         map: map,
-                        title: pokemon.name + ' - expire in: ' + pokemon.expirationTimeMs + ' ms',
+                        title: pokemon.name,
                         icon: {
                             url: pokemon.image,
                             scaledSize: new google.maps.Size(30, 30),
                             origin: new google.maps.Point(0, 0),
                             anchor: new google.maps.Point(15, 15)
                         }
+                    });
+
+                    var infowindow = new google.maps.InfoWindow();
+                    marker.addListener('click', function() {
+                        var timeRemaining = (pokemon.expirationTimeMs - (new Date()).getTime()) / 1000;
+                        infowindow.setContent('<div>Time remaining: ' + timeRemaining + ' s</div>');
+                        infowindow.open(map, this);
                     });
                 }
             });
