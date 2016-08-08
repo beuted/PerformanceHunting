@@ -28,6 +28,7 @@
     <script>
         var map;
         var socket = io();
+        var encounterIdsSeen = [];
 
         initSockets();
 
@@ -147,8 +148,12 @@
             socket.on('new_pokemons', function (pokemonsJson) {
                 for (var i = 0; i < pokemonsJson.length; i++) {
                     var pokemon = pokemonsJson[i];
+
+                    if (_.includes(encounterIdsSeen, pokemon.encounterId))
+                        continue;
+
+                    encounterIdsSeen.push(pokemon.encounterId);
                     console.log("[+] " + pokemon.name + " found");
-                    $('#time').html('Last Update:' + new Date());
 
                     var marker = new google.maps.Marker({
                         position: { lat: pokemon.lat, lng: pokemon.lng },

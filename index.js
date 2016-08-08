@@ -120,7 +120,6 @@ var watchPokemonsInZone = function(username, password, location, provider, socke
     //        console.log('[i] Stardust: ' + profile.currency[1].amount);
     //    });
 
-        var allPokemonsSeen = []; //TODO(b.jehanno): Store this in a fancy DB (elastic search ?)
         var heartbeatId = setInterval(() => {
             pokeio.Heartbeat(function(err, hb) {
                 console.log('[HB] - ' + username); //TODO: remove
@@ -129,17 +128,12 @@ var watchPokemonsInZone = function(username, password, location, provider, socke
                     return;
                 }
 
+                //TODO(b.jehanno): Store this in a fancy DB (elastic search ?)
                 var pokemonsSeen = [];
                 for (var i = hb.cells.length - 1; i >= 0; i--) {
                     for (var j = hb.cells[i].MapPokemon.length - 1; j >= 0; j--)
                     {
                         var currentPokemon = hb.cells[i].MapPokemon[j];
-
-                        if (_.includes(allPokemonsSeen, currentPokemon.EncounterId.toNumber()))
-                            continue;
-
-                        allPokemonsSeen.push(currentPokemon.EncounterId.toNumber());
-
                         var pokedexInfo = pokeio.pokemonlist[parseInt(currentPokemon.PokedexTypeId)-1]; //TODO(b.jehanno): let's store in client
                         var pokemon = {
                             encounterId: currentPokemon.EncounterId.toNumber(),
