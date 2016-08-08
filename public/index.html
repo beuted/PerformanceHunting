@@ -13,13 +13,23 @@
 <body>
     <h1>PokeNotifier</h1>
     <div id="time" class="time">Waiting for a pokemon to be found in your area...</div>
+    <p style="text-align: center;">
+        Don't use your real pokemon account! <a href="https://sso.pokemon.com/sso/login" target="_blank">Create another one</a> or just <a href="http://goplaypkmn.xyz" target="_blank">generate one here</a>
+    </p>
+    <div class="login-form">
+        Login: <input type="text" id="login">
+        Password: <input type="password" id="password">
+        Location: <input type="text" id="location">
+        <button id="login-button">Login</button>
+    </div>
     <div id="map" class="map"></div>
+
     <script>
         var socket = io();
 
         socket.on('connect', function() {
             console.log('[s] socket connected');
-        })
+        });
 
         socket.on('new_pokemons', function (pokemonsJson) {
             for (var i = 0; i < pokemonsJson.length; i++) {
@@ -44,6 +54,48 @@
 
         var map;
         function initMap() {
+            var styles = [
+              {
+                "featureType": "poi",
+                "stylers": [
+                  { "visibility": "off" }
+                ]
+              },{
+                "featureType": "poi.park",
+                "stylers": [
+                  { "visibility": "on" }
+                ]
+              },{
+                "featureType": "poi.place_of_worship",
+                "stylers": [
+                  { "visibility": "on" }
+                ]
+              },{
+                "featureType": "transit",
+                "stylers": [
+                  { "visibility": "off" }
+                ]
+              },{
+                "featureType": "road",
+                "elementType": "geometry",
+                "stylers": [
+                  { "visibility": "on" },
+                  { "color": "#7b8080" },
+                  { "hue": "#1900ff" },
+                  { "saturation": 70 },
+                  { "gamma": 3.37 }
+                ]
+              },{
+                "featureType": "landscape.man_made",
+                "stylers": [
+                  { "hue": "#ff0000" },
+                  { "saturation": 60 }
+                ]
+              }
+            ]
+            var styledMap = new google.maps.StyledMapType(styles,
+                { name: 'light Map' });
+
             var myPosition = { lat: 48.87929, lng: 2.33203 };
             var gMapOptions = {
                 zoom: 16,
@@ -52,10 +104,30 @@
             };
 
             map = new google.maps.Map(document.getElementById('map'), gMapOptions);
+            map.mapTypes.set('map_style', styledMap);
+            map.setMapTypeId('map_style');
         }
 
+        $('#login-button').click(function() {
+            var login = $('#login').val();
+            var password = $('#password').val();
+            var location = $('#location').val();
+            $.ajax({
+                type: 'POST',
+                url: '/api/login',
+                data: JSON.stringify({ user: login, password: password, location: location }),
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json'
+            })
+            .done(function(data) {
+                alert('Logged in, live polling starting ;)');
+            })
+            .fail(function() {
+                alert('unable to login, check your account name and password');
+            });
+        });
     </script>
-    <script async defer
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCbzsEJSkK1PWvgPKqRkP8mSGWJPvx_jVU&signed_in=true&callback=initMap"></script>
+
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCbzsEJSkK1PWvgPKqRkP8mSGWJPvx_jVU&signed_in=true&callback=initMap"></script>
 </body>
 </html>

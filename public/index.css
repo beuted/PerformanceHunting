@@ -17,3 +17,9 @@ h1 {
 	width: 800px;
 	margin: auto;
 }
+
+.login-form {
+	text-align: center;
+	margin-top: 15px;
+	margin-bottom: 15px;
+}
