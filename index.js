@@ -75,6 +75,7 @@ io.sockets.on('connection', socket => {
 
         if (username != undefined) {
             console.log(`[i] Log-out with user: ${username}`);
+            clearInterval(loggedUsers[username].heartbeatId);
             delete loggedUsers[username];
         } else {
             console.error(`[error] User could not be disconnected, socketid: ${socket.id}`);
@@ -88,10 +89,7 @@ var loggedUsers = {}; //Note(b.jehanno): This might be worth to store the pokeio
 var watchPokemonsInZone = function(username, password, location, provider, socketId, callback) {
     var pokeio = new PokemonGO.Pokeio();
 
-    //TODO(b.jehanno): First two chars are always /# that could have to do with rooms of socket.io
     var socketIdWithRoom = '/#' + socketId;
-
-    loggedUsers[username] = { pokeio: pokeio, socketId: '/#' + socketId };
 
     pokeio.init(username, password, location, provider, function(err) {
         if (err) {
@@ -123,7 +121,7 @@ var watchPokemonsInZone = function(username, password, location, provider, socke
     //    });
 
         var allPokemonsSeen = []; //TODO(b.jehanno): Store this in a fancy DB (elastic search ?)
-        setInterval(() => {
+        var heartbeatId = setInterval(() => {
             pokeio.Heartbeat(function(err, hb) {
                 console.log('[HB] - ' + username); //TODO: remove
                 if(err || hb === undefined) {
@@ -159,6 +157,9 @@ var watchPokemonsInZone = function(username, password, location, provider, socke
                     io.sockets.emit('new_pokemons', pokemonsSeen);
             });
         }, 10000);
+
+        //TODO(b.jehanno): First two chars are always /# that could have to do with rooms of socket.io
+        loggedUsers[username] = { pokeio: pokeio, socketId: '/#' + socketId, heartbeatId: heartbeatId };
     });
 }
 
