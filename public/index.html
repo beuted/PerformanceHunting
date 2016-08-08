@@ -28,30 +28,7 @@
         var map;
         var socket = io();
 
-        socket.on('connect', function() {
-            console.log('[s] socket connected');
-        });
-
-        socket.on('new_pokemons', function (pokemonsJson) {
-            for (var i = 0; i < pokemonsJson.length; i++) {
-                var pokemon = pokemonsJson[i];
-                console.log("[+] " + pokemon.name + " found");
-                $('#time').html('Last Update:' + new Date());
-
-                var marker = new google.maps.Marker({
-                    position: { lat: pokemon.lat, lng: pokemon.lng },
-                    map: map,
-                    title: pokemon.name + " - expire in: " + pokemon.expirationTimeMs + " ms",
-                    icon: {
-                        url: pokemon.image,
-                        scaledSize: new google.maps.Size(30, 30),
-                        origin: new google.maps.Point(0, 0),
-                        anchor: new google.maps.Point(15, 15)
-                    }
-                });
-            }
-            $('#time').html('Last pkmn found:' + new Date());
-        });
+        initSockets();
 
         $('#login-button').click(function() {
             var username = $('#login').val();
@@ -64,11 +41,12 @@
             $.ajax({
                 type: 'POST',
                 url: '/api/login',
-                data: JSON.stringify({ username: username, password: password, location: location }),
+                data: JSON.stringify({ username: username, password: password, location: location, socketId: socket.io.engine.id }),
                 contentType: 'application/json; charset=utf-8',
                 dataType: 'json'
             })
             .done(function(data) {
+                socket.emit('join', username);
                 seedMapWithLogin(data.position, username);
             })
             .fail(function(err) {
@@ -158,6 +136,33 @@
                 });
             });
             map.panTo(position);
+        }
+
+        function initSockets() {
+            socket.on('connect', function() {
+                console.log('[s] socket connected: ' + socket.io.engine.id);
+            });
+
+            socket.on('new_pokemons', function (pokemonsJson) {
+                for (var i = 0; i < pokemonsJson.length; i++) {
+                    var pokemon = pokemonsJson[i];
+                    console.log("[+] " + pokemon.name + " found");
+                    $('#time').html('Last Update:' + new Date());
+
+                    var marker = new google.maps.Marker({
+                        position: { lat: pokemon.lat, lng: pokemon.lng },
+                        map: map,
+                        title: pokemon.name + " - expire in: " + pokemon.expirationTimeMs + " ms",
+                        icon: {
+                            url: pokemon.image,
+                            scaledSize: new google.maps.Size(30, 30),
+                            origin: new google.maps.Point(0, 0),
+                            anchor: new google.maps.Point(15, 15)
+                        }
+                    });
+                }
+                $('#time').html('Last pkmn found:' + new Date());
+            });
         }
     </script>
 

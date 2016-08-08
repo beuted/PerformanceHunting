@@ -27,7 +27,7 @@ app.post('/api/login', (req, res) => {
     var json = req.body;
     var locationObj = { type: 'name', name: json.location };
 
-    watchPokemonsInZone(json.username, json.password, locationObj, provider, function(successMsg, errorMsg) {
+    watchPokemonsInZone(json.username, json.password, locationObj, provider, json.socketId, function(successMsg, errorMsg) {
         if (!errorMsg) {
             res.status(200).send(successMsg);
         } else {
@@ -41,7 +41,7 @@ app.post('/api/move', (req, res) => {
     var json = req.body;
     var locationObj = { type: 'coords', coords: { latitude: json.location.lat, longitude: json.location.lng} };
 
-    var user = loggedUsers.get(json.username);
+    var user = loggedUsers[json.username];
     if (user == undefined) {
         res.status(401).send({ 'message': 'Unknown user' });
         res.end();
@@ -50,11 +50,12 @@ app.post('/api/move', (req, res) => {
 
     user.pokeio.SetLocation(locationObj, (err, msg) => {
         if (err) {
-            var errorMsg = `[Error] Unable to move to: ${JSON.stringify(json.location)} as ${json.username}"`;
+            var errorMsg = `[error] Unable to move to: ${JSON.stringify(json.location)} as ${json.username}"`;
             console.error(`${errorMsg}\n-> err: ${JSON.stringify(err)}`);
             res.status(500).send({ 'message': errorMsg });
             res.end();
         } else {
+            console.log(`[i] User ${json.username} moved to ${JSON.stringify(json.location)}`);
             res.status(200).send(msg);
             res.end();
         }
@@ -62,27 +63,39 @@ app.post('/api/move', (req, res) => {
 });
 
 // Web Sockets
-var allClients = [];
 io.sockets.on('connection', socket => {
-    allClients.push(socket);
-    console.log(`[s] client connected: ${socket.id}`);
+    console.log(`[s] Client connected: ${socket.id}`);
 
     socket.on('disconnect', function() {
-        console.log(`[s] client disconnected: ${socket.id}`);
-        var i = allClients.indexOf(socket);
-        allClients.splice(i, 1);
+        console.log(`[s] Client disconnected: ${socket.id}`);
+
+        var username = _.findKey(loggedUsers, value => {
+            return value.socketId == socket.id;
+        });
+
+        if (username != undefined) {
+            console.log(`[i] Log-out with user: ${username}`);
+            delete loggedUsers[username];
+        } else {
+            console.error(`[error] User could not be disconnected, socketid: ${socket.id}`);
+        }
     });
 });
 
 // Pokemon api logic
-var loggedUsers = new Map();
+var loggedUsers = {}; //Note(b.jehanno): This might be worth to store the pokeio object seperatly as they can be quite big (costly to _.findKey etc)
 
-var watchPokemonsInZone = function(username, password, location, provider, callback) {
+var watchPokemonsInZone = function(username, password, location, provider, socketId, callback) {
     var pokeio = new PokemonGO.Pokeio();
-    loggedUsers.set(username, { pokeio: pokeio })
+
+    //TODO(b.jehanno): First two chars are always /# that could have to do with rooms of socket.io
+    var socketIdWithRoom = '/#' + socketId;
+
+    loggedUsers[username] = { pokeio: pokeio, socketId: '/#' + socketId };
+
     pokeio.init(username, password, location, provider, function(err) {
         if (err) {
-            var errorMsg = `[Error] Unable to connect with: (${username}, ${password}, ${provider}) at "${location.name}"`;
+            var errorMsg = `[error] Unable to connect with: (${username}, ${password}, ${provider}, sId: ${socketId}) at "${location.name}"`;
             console.error(`${errorMsg}\n-> err: ${JSON.stringify(err)}`);
             callback(null, errorMsg);
             return;
@@ -112,9 +125,9 @@ var watchPokemonsInZone = function(username, password, location, provider, callb
         var allPokemonsSeen = []; //TODO(b.jehanno): Store this in a fancy DB (elastic search ?)
         setInterval(() => {
             pokeio.Heartbeat(function(err, hb) {
-                console.log('toudoum: ' + username); //TODO: remove
+                console.log('[HB] - ' + username); //TODO: remove
                 if(err || hb === undefined) {
-                    console.error(`[Error] Search for pokemon failed\n-> err: ${JSON.stringify(err)}`);
+                    console.error(`[error] Search for pokemon failed\n-> err: ${JSON.stringify(err)}`);
                     return;
                 }
 
