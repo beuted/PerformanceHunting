@@ -62,10 +62,16 @@ app.post('/api/move', (req, res) => {
 });
 
 // Web Sockets
-var socket;
-io.sockets.on('connection', s => {
-    socket = s;
+var allClients = [];
+io.sockets.on('connection', socket => {
+    allClients.push(socket);
     console.log(`[s] client connected: ${socket.id}`);
+
+    socket.on('disconnect', function() {
+        console.log(`[s] client disconnected: ${socket.id}`);
+        var i = allClients.indexOf(socket);
+        allClients.splice(i, 1);
+    });
 });
 
 // Pokemon api logic
@@ -137,7 +143,7 @@ var watchPokemonsInZone = function(username, password, location, provider, callb
                     }
                 }
                 if (pokemonsSeen.length > 0)
-                    socket.volatile.emit('new_pokemons', pokemonsSeen);
+                    io.sockets.emit('new_pokemons', pokemonsSeen);
             });
         }, 10000);
     });
