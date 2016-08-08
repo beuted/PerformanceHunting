@@ -120,7 +120,12 @@
                 dataType: 'json'
             })
             .done(function(data) {
-                alert('Logged in, live polling starting ;)');
+                var marker = new google.maps.Marker({
+                    position: data.position,
+                    map: map,
+                    title: 'Position'
+                });
+                map.panTo(data.position);
             })
             .fail(function() {
                 alert('unable to login, check your account name and password');

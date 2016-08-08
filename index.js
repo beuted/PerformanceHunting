@@ -30,7 +30,7 @@ app.post('/api/login', (req, res) => {
 
     watchPokemonsInZone(json.user, json.password, locationObj, provider, function(successMsg, errorMsg) {
         if (!errorMsg) {
-            res.status(200).send({ 'message': successMsg });
+            res.status(200).send(successMsg);
         } else {
             res.status(401).send({ 'message': errorMsg });
         }
@@ -55,11 +55,11 @@ var pokeio = new PokemonGO.Pokeio();
             callback(null, errorMsg);
             return;
         }
-        callback(`Successfully logged with: (${username}, ${password}, ${provider}) at ${location.name}`, null);
 
         console.log('[i] Current location: ' + pokeio.playerInfo.locationName);
         console.log('[i] lat/long/alt: : ' + pokeio.playerInfo.latitude + ' ' + pokeio.playerInfo.longitude + ' ' + pokeio.playerInfo.altitude);
 
+        callback({ position: { lat: pokeio.playerInfo.latitude, lng: pokeio.playerInfo.longitude } }, null);
     // Note(b.jehanno) Code commented cause of throttling issue (connection + first call to profile are too close to eachother)
     //    pokeio.GetProfile(function(err, profile) {
     //        if (err) throw err;
