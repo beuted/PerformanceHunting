@@ -8,8 +8,9 @@ h1 {
 	text-align: center;
 }
 
-.time {
+.message {
 	text-align: center;
+	font-style: italic;
 }
 
 .map {

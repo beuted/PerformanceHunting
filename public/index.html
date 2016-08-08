@@ -13,7 +13,7 @@
 </head>
 <body>
     <h1>PokeNotifier</h1>
-    <div id="time" class="time">Waiting for a pokemon to be found in your area...</div>
+    <div id="message" class="message">Login to start traking pokemons...</div>
     <p style="text-align: center;">
         Don't use your real pokemon account! <a href="https://sso.pokemon.com/sso/login" target="_blank">Create another one</a> or just <a href="http://goplaypkmn.xyz" target="_blank">generate one here</a>
     </p>
@@ -129,7 +129,7 @@
                     contentType: 'application/json; charset=utf-8',
                     dataType: 'json'
                 }).done(function(data) {
-                    console.log('[+] Moved to: [' + data.latitude + ', ' + data.longitude + ']');
+                    sendLog('Moved to: [' + data.latitude + ', ' + data.longitude + ']');
                 }).fail(function(err) {
                     if (err.status == 401)
                         alert('Unable to move search pointer, try login\' out and in again');
@@ -153,12 +153,13 @@
                         continue;
 
                     encounterIdsSeen.push(pokemon.encounterId);
-                    console.log("[+] " + pokemon.name + " found");
+                    var date = new Date();
+                    sendLog(pokemon.name + ' found at ' + date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds());
 
                     var marker = new google.maps.Marker({
                         position: { lat: pokemon.lat, lng: pokemon.lng },
                         map: map,
-                        title: pokemon.name + " - expire in: " + pokemon.expirationTimeMs + " ms",
+                        title: pokemon.name + ' - expire in: ' + pokemon.expirationTimeMs + ' ms',
                         icon: {
                             url: pokemon.image,
                             scaledSize: new google.maps.Size(30, 30),
@@ -167,8 +168,12 @@
                         }
                     });
                 }
-                $('#time').html('Last pkmn found:' + new Date());
             });
+        }
+
+        function sendLog(message) {
+            console.log('[+] ' + message);
+            $('#message').html(message);
         }
     </script>
 
