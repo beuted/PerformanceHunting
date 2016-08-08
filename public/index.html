@@ -25,6 +25,7 @@
     <div id="map" class="map"></div>
 
     <script>
+        var map;
         var socket = io();
 
         socket.on('connect', function() {
@@ -49,10 +50,35 @@
                     }
                 });
             }
-            $('#time').html('Last Update:' + new Date());
+            $('#time').html('Last pkmn found:' + new Date());
         });
 
-        var map;
+        $('#login-button').click(function() {
+            var username = $('#login').val();
+            var password = $('#password').val();
+            var location = $('#location').val();
+            loginUser(username, password, location);
+        });
+
+        function loginUser(username, password, location) {
+            $.ajax({
+                type: 'POST',
+                url: '/api/login',
+                data: JSON.stringify({ username: username, password: password, location: location }),
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json'
+            })
+            .done(function(data) {
+                seedMapWithLogin(data.position, username);
+            })
+            .fail(function(err) {
+                if (err.status == 401)
+                    alert('Unable to login, check your account name and password');
+                else
+                    alert('Internal Server error contact OP ;)');
+            });
+        }
+
         function initMap() {
             var styles = [
               {
@@ -108,29 +134,31 @@
             map.setMapTypeId('map_style');
         }
 
-        $('#login-button').click(function() {
-            var login = $('#login').val();
-            var password = $('#password').val();
-            var location = $('#location').val();
-            $.ajax({
-                type: 'POST',
-                url: '/api/login',
-                data: JSON.stringify({ user: login, password: password, location: location }),
-                contentType: 'application/json; charset=utf-8',
-                dataType: 'json'
-            })
-            .done(function(data) {
-                var marker = new google.maps.Marker({
-                    position: data.position,
-                    map: map,
-                    title: 'Position'
-                });
-                map.panTo(data.position);
-            })
-            .fail(function() {
-                alert('unable to login, check your account name and password');
+        function seedMapWithLogin(position, username) {
+            var marker = new google.maps.Marker({
+                position: position,
+                map: map,
+                title: 'Position',
+                draggable: true
             });
-        });
+            marker.addListener('dragend', function(loc) {
+                $.ajax({
+                    type: 'POST',
+                    url: '/api/move',
+                    data: JSON.stringify({ username: username, location: loc.latLng }),
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json'
+                }).done(function(data) {
+                    console.log('[+] Moved to: [' + data.latitude + ', ' + data.longitude + ']');
+                }).fail(function(err) {
+                    if (err.status == 401)
+                        alert('Unable to move search pointer, try login\' out and in again');
+                    else
+                        alert('Internal Server error contact OP ;)');
+                });
+            });
+            map.panTo(position);
+        }
     </script>
 
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCbzsEJSkK1PWvgPKqRkP8mSGWJPvx_jVU&signed_in=true&callback=initMap"></script>

@@ -21,14 +21,13 @@ var io = require('socket.io').listen(server);
 
 var provider = process.env.PGO_PROVIDER || config.PGO_PROVIDER;
 
+
 // Routing
 app.post('/api/login', (req, res) => {
     var json = req.body;
     var locationObj = { type: 'name', name: json.location };
 
-    console.log(JSON.stringify(locationObj));
-
-    watchPokemonsInZone(json.user, json.password, locationObj, provider, function(successMsg, errorMsg) {
+    watchPokemonsInZone(json.username, json.password, locationObj, provider, function(successMsg, errorMsg) {
         if (!errorMsg) {
             res.status(200).send(successMsg);
         } else {
@@ -38,16 +37,43 @@ app.post('/api/login', (req, res) => {
     });
 });
 
+app.post('/api/move', (req, res) => {
+    var json = req.body;
+    var locationObj = { type: 'coords', coords: { latitude: json.location.lat, longitude: json.location.lng} };
+
+    var user = loggedUsers.get(json.username);
+    if (user == undefined) {
+        res.status(401).send({ 'message': 'Unknown user' });
+        res.end();
+        return;
+    }
+
+    user.pokeio.SetLocation(locationObj, (err, msg) => {
+        if (err) {
+            var errorMsg = `[Error] Unable to move to: ${JSON.stringify(json.location)} as ${json.username}"`;
+            console.error(`${errorMsg}\n-> err: ${JSON.stringify(err)}`);
+            res.status(500).send({ 'message': errorMsg });
+            res.end();
+        } else {
+            res.status(200).send(msg);
+            res.end();
+        }
+    });
+});
+
 // Web Sockets
 var socket;
-io.sockets.on('connection', (s) => {
+io.sockets.on('connection', s => {
     socket = s;
     console.log(`[s] client connected: ${socket.id}`);
 });
 
 // Pokemon api logic
+var loggedUsers = new Map();
+
 var watchPokemonsInZone = function(username, password, location, provider, callback) {
-var pokeio = new PokemonGO.Pokeio();
+    var pokeio = new PokemonGO.Pokeio();
+    loggedUsers.set(username, { pokeio: pokeio })
     pokeio.init(username, password, location, provider, function(err) {
         if (err) {
             var errorMsg = `[Error] Unable to connect with: (${username}, ${password}, ${provider}) at "${location.name}"`;
