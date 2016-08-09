@@ -4,9 +4,10 @@ Let's catch 'em all yo!
 
 ## Running the app
 
-* Complete the config.js app with some pokemon go credentials (not your main account one obviously...)
-* Run `node index.js`
+* Run `npm start`
 * Visit `localhost:3000`
+* Enter a login / password of a _pokemon trainer club_ account (don't use your main account) and an adress then click **login**
+* catch 'em all!
 
 ## Tout doux
 
