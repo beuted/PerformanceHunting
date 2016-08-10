@@ -25,7 +25,7 @@ var provider = process.env.PGO_PROVIDER || config.PGO_PROVIDER;
 // Routing
 app.post('/api/login', (req, res) => {
     var json = req.body;
-    var locationObj = { type: 'name', name: json.location };
+    var locationObj = { type: 'name', name: json.location || '9 rue de rochechouart' };
 
     watchPokemonsInZone(json.username, json.password, locationObj, provider, json.socketId, function(successMsg, errorMsg) {
         if (!errorMsg) {
