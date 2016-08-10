@@ -121,6 +121,17 @@
                 title: 'Position',
                 draggable: true
             });
+            var circle = new google.maps.Circle({
+                map: map,
+                radius: 140,
+                strokeColor: '#FF0000',
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: '#FF0000',
+                fillOpacity: 0.35,
+            });
+            circle.bindTo('center', marker, 'position');
+
             marker.addListener('dragend', function(loc) {
                 $.ajax({
                     type: 'POST',
