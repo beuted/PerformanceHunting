@@ -89,8 +89,6 @@ var loggedUsers = {}; //Note(b.jehanno): This might be worth to store the pokeio
 var watchPokemonsInZone = function(username, password, location, provider, socketId, callback) {
     var pokeio = new PokemonGO.Pokeio();
 
-    var socketIdWithRoom = '/#' + socketId;
-
     pokeio.init(username, password, location, provider, function(err) {
         if (err) {
             var errorMsg = `[error] Unable to connect with: (${username}, ${password}, ${provider}, sId: ${socketId}) at "${location.name}"`;
@@ -103,22 +101,6 @@ var watchPokemonsInZone = function(username, password, location, provider, socke
         console.log('[i] lat/long/alt: : ' + pokeio.playerInfo.latitude + ' ' + pokeio.playerInfo.longitude + ' ' + pokeio.playerInfo.altitude);
 
         callback({ position: { lat: pokeio.playerInfo.latitude, lng: pokeio.playerInfo.longitude } }, null);
-    // Note(b.jehanno) Code commented cause of throttling issue (connection + first call to profile are too close to eachother)
-    //    pokeio.GetProfile(function(err, profile) {
-    //        if (err) throw err;
-    //
-    //        console.log('[i] Username: ' + profile.username);
-    //        console.log('[i] Poke Storage: ' + profile.poke_storage);
-    //        console.log('[i] Item Storage: ' + profile.item_storage);
-    //
-    //        var poke = 0;
-    //        if (profile.currency[0].amount) {
-    //            poke = profile.currency[0].amount;
-    //        }
-    //
-    //        console.log('[i] Pokecoin: ' + poke);
-    //        console.log('[i] Stardust: ' + profile.currency[1].amount);
-    //    });
 
         var heartbeatId = setInterval(() => {
             pokeio.Heartbeat(function(err, hb) {
