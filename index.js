@@ -30,13 +30,12 @@ Server.init(io);
 
 // Configuration variables
 var provider = process.env.PGO_PROVIDER || config.PGO_PROVIDER;
-var defaultLocationObj = { type: 'coords', coords: { latitude: 48.877330, longitude: 2.335000 } };
 
 
 // Routing
 app.post('/api/login', (req, res) => {
     var json = req.body;
-    var locationObj = defaultLocationObj;
+    var locationObj = config.DEFAULT_LOCATION;
     if (json.location && json.location.length)
         locationObj = { type: 'name', name: json.location };
 
