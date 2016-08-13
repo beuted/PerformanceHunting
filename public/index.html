@@ -106,7 +106,10 @@
             var gMapOptions = {
                 zoom: 16,
                 center: myPosition,
-                mapTypeId: google.maps.MapTypeId.ROADMAP
+                mapTypeId: google.maps.MapTypeId.ROADMAP,
+                streetViewControl: false,
+                rotateControl: false,
+                mapTypeControl: false
             };
 
             map = new google.maps.Map(document.getElementById('map'), gMapOptions);
@@ -203,6 +206,6 @@
         }
     </script>
 
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCbzsEJSkK1PWvgPKqRkP8mSGWJPvx_jVU&signed_in=true&callback=initMap"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCbzsEJSkK1PWvgPKqRkP8mSGWJPvx_jVU&signed_in=false&callback=initMap"></script>
 </body>
 </html>
