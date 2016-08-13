@@ -69,9 +69,13 @@ class User {
 
                         //TODO(b.jehanno): Store this in a fancy DB (elastic search ?)
                         var pokemonsSeen = [];
+                        if (!hb.cells[0] || (hb.cells[0].Fort.length == 0 && hb.cells[0].NearbyPokemon.length == 0))
+                            console.log(`[warning] ${this.username} seems to have reach the rate limit`);
+
                         for (var i = hb.cells.length - 1; i >= 0; i--) {
                             for (var j = hb.cells[i].MapPokemon.length - 1; j >= 0; j--)
                             {
+
                                 var currentPokemon = hb.cells[i].MapPokemon[j];
                                 var pokedexInfo = this.pokeio.pokemonlist[parseInt(currentPokemon.PokedexTypeId)-1]; //TODO(b.jehanno): let's store in client
                                 var pokemon = {
@@ -94,7 +98,7 @@ class User {
                     });
                 }
             });
-        }, 2000);
+        }, 7000);
     }
 }
 
