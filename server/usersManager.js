@@ -27,9 +27,9 @@ class UsersManager {
         return null;
     }
 
-    removeUser(user) {
-        user.delete();
-        delete this.userDic[user.username];
+    removeUser(username) {
+        this.userDic[username].delete();
+        delete this.userDic[username];
     }
 }
 

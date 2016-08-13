@@ -3,7 +3,7 @@
 <head>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
-    <title>PokeNotifier</title>
+    <title>Performance Hunting</title>
 
     <link rel="stylesheet" href="index.css">
 
@@ -12,15 +12,13 @@
     <script type="text/javascript" src="/socket.io/socket.io.js"></script>
 </head>
 <body>
-    <h1>PokeNotifier</h1>
+    <h1>Performance Hunting</h1>
     <div id="message" class="message">Login to start traking pokemons...</div>
     <p style="text-align: center;">
-        Don't use your real pokemon account! <a href="https://sso.pokemon.com/sso/login" target="_blank">Create another one</a> or just <a href="http://goplaypkmn.xyz" target="_blank">generate one here</a>
+        The number of users logged at the same time is limited, if you can't login wait a bit and try again. Note that it takes up to <strong>42 seconds</strong> to scan the full red zone ATM, (but I'm working on that).
     </p>
     <div class="login-form">
-        Login: <input type="text" id="login">
-        Password: <input type="password" id="password">
-        Location: <input type="text" id="location">
+        Username: <input type="text" id="login">
         <button id="login-button">Login</button>
     </div>
     <div id="map" class="map"></div>
@@ -34,26 +32,26 @@
 
         $('#login-button').click(function() {
             var username = $('#login').val();
-            var password = $('#password').val();
-            var location = $('#location').val();
-            loginUser(username, password, location);
+            loginUser(username);
         });
 
-        function loginUser(username, password, location) {
+        function loginUser(username) {
             $.ajax({
                 type: 'POST',
                 url: '/api/login',
-                data: JSON.stringify({ username: username, password: password, location: location, socketId: socket.io.engine.id }),
+                data: JSON.stringify({ username: username, socketId: socket.io.engine.id }),
                 contentType: 'application/json; charset=utf-8',
                 dataType: 'json'
             })
             .done(function(data) {
                 socket.emit('join', username);
-                seedMapWithLogin(data.position, username);
+                seedMapWithLogin(data, username);
             })
             .fail(function(err) {
                 if (err.status == 401)
-                    alert('Unable to login, check your account name and password');
+                    alert('This user name is already taken, choose another one :)');
+                else if (err.status == 400)
+                    alert('Too many players currenlty logged, please try again later :)');
                 else
                     alert('Internal Server error contact OP ;)');
             });
