@@ -16,20 +16,10 @@ class User {
     }
 
     move(newLocation, callback) {
-        var locationObj = { type: 'coords', coords: { latitude: newLocation.lat, longitude: newLocation.lng} };
-
-        this.pokeio.SetLocation(locationObj, (err, msg) => {
-            if (err) {
-                var errorMsg = `[error] Unable to move to: ${JSON.stringify(newLocation)} as ${this.username}"`;
-                console.error(`${errorMsg}\n-> err: ${JSON.stringify(err)}`);
-                callback(errorMsg, null);
-            } else {
-                this.lookingPointIndex = 0;
-                this.location = newLocation;
-                console.log(`[i] User ${this.username} moved to ${JSON.stringify(newLocation)}`);
-                callback(null, msg);
-            }
-        });
+        this.lookingPointIndex = 0;
+        this.location = newLocation;
+        console.log(`[i] User ${this.username} moved to ${JSON.stringify(newLocation)}`);
+        callback(null, newLocation);
     }
 
     delete() {

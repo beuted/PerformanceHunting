@@ -143,7 +143,7 @@
                     contentType: 'application/json; charset=utf-8',
                     dataType: 'json'
                 }).done(function(data) {
-                    sendLog('Moved to: [' + data.latitude + ', ' + data.longitude + ']');
+                    sendLog('Moved to: [' + data.lat + ', ' + data.lng + ']');
                 }).fail(function(err) {
                     if (err.status == 401)
                         alert('Unable to move search pointer, try login\' out and in again');
