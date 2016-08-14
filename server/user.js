@@ -6,7 +6,6 @@ var Server = require('./server');
 class User {
     constructor(username, socketId, location, accountsManager) {
         this.username = username;
-        this.provider = 'ptc';
         this.socketId = socketId
         this.location = location;
         this.heartbeatId = null;
