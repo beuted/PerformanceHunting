@@ -32,6 +32,11 @@
 
         $('#login-button').click(function() {
             var username = $('#login').val();
+            if (!username) {
+                alert('Please choose a name to login with');
+                return;
+            }
+
             loginUser(username);
         });
 
