@@ -46,10 +46,16 @@ class User {
                 if (!err) {
                     this.account.scan((pokemonsSeen) => {
                         if (pokemonsSeen.length > 0) {
-                            // Send entries to elastic search
                             var requestBody = [];
+
                              _.each(pokemonsSeen, pokemon => {
-                                var ttl = Math.floor((pokemon.expirationTimeMs - (new Date()).getTime()) / 1000);
+                                //When expirationTime = -1 it means that it is between 15 and 30 min
+                                var ttl;
+                                if (pokemon.expirationTimeMs < 0)
+                                    ttl = 15*60;
+                                else
+                                    ttl = Math.floor((pokemon.expirationTimeMs - (new Date()).getTime()) / 1000);
+
                                 requestBody.push(
                                     { create:  { _index: 'pkmn', _type: 'pokemons', _id: pokemon.encounterId, _ttl: `${ttl}s` } }
                                 );

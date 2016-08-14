@@ -190,14 +190,15 @@
                 }).done(function(pokemonsJson) {
                     for (var i = 0; i < pokemonsJson.length; i++) {
                         var pokemon = pokemonsJson[i];
-                        pokemon.foundDate = new Date();
+                        pokemon.expireDate = new Date();
+                        pokemon.expireDate.setSeconds(pokemon.expireDate.getSeconds() + pokemon.ttl / 1000);
 
                         if (_.includes(encounterIdsSeen, pokemon.id))
                             continue;
 
                         encounterIdsSeen.push(pokemon.id);
-                        sendLog(pokemon.name + ' found at ' + pokemon.foundDate.getHours() + ':'
-                                + pokemon.foundDate.getMinutes() + ':' + pokemon.foundDate.getSeconds());
+                        sendLog(pokemon.name + ' expire at ' + pokemon.expireDate.getHours() + ':'
+                                + pokemon.expireDate.getMinutes() + ':' + pokemon.expireDate.getSeconds());
 
                         var marker = new google.maps.Marker({
                             position: pokemon.location,
@@ -212,10 +213,12 @@
                         });
 
                         var infowindow = new google.maps.InfoWindow();
-                        marker.addListener('click', function() {
-                            infowindow.setContent('<div>Time remaining: ' + Math.floor(pokemon.ttl / 1000) + ' s</div>');
-                            infowindow.open(map, this);
-                        });
+                        (function (pkmn, infowindow) {
+                            marker.addListener('click', function() {
+                                infowindow.setContent('<div>Time remaining: ' + Math.floor( (pkmn.expireDate.getTime() - (new Date()).getTime()) / 1000 ) + ' s</div>');
+                                infowindow.open(map, this);
+                            });
+                        })(pokemon, infowindow);
 
                         (function (m) {
                             setTimeout(function() {

@@ -63,8 +63,7 @@ class Account {
                         name: pokedexInfo.name,
                         lat: currentPokemon.Latitude,
                         lng: currentPokemon.Longitude,
-                        expirationTimeMs: currentPokemon.ExpirationTimeMs.toNumber() != -1
-                            ? currentPokemon.ExpirationTimeMs.toNumber() : 15*60*1000, //When expirationTime = -1 it means that it is between 15 and 30 min
+                        expirationTimeMs: currentPokemon.ExpirationTimeMs.toNumber(),
                         image: pokedexInfo.img,
                         typeId: currentPokemon.PokedexTypeId
                     }
