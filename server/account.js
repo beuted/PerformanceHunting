@@ -65,7 +65,8 @@ class Account {
                         lng: currentPokemon.Longitude,
                         expirationTimeMs: currentPokemon.ExpirationTimeMs.toNumber() != -1
                             ? currentPokemon.ExpirationTimeMs.toNumber() : 15*60*1000, //When expirationTime = -1 it means that it is between 15 and 30 min
-                        image: pokedexInfo.img
+                        image: pokedexInfo.img,
+                        typeId: currentPokemon.PokedexTypeId
                     }
                     pokemonsSeen.push(pokemon);
                     //console.log('[+] ' + pokedexInfo.name + ' found: ' + JSON.stringify(pokemon));

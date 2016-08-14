@@ -28,41 +28,85 @@
         var socket = io();
         var encounterIdsSeen = [];
 
-        initSockets();
+        function initButtonInteraction(map) {
+            $('#login-button').click(function() {
+                var username = $('#login').val();
+                if (!username) {
+                    alert('Please choose a name to login with');
+                    return;
+                }
 
-        $('#login-button').click(function() {
-            var username = $('#login').val();
-            if (!username) {
-                alert('Please choose a name to login with');
-                return;
+                loginUser(username);
+            });
+
+            function loginUser(username) {
+                $.ajax({
+                    type: 'POST',
+                    url: '/api/login',
+                    data: JSON.stringify({ username: username, socketId: socket.io.engine.id }),
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json'
+                })
+                .done(function(data) {
+                    socket.emit('join', username);
+                    seedMapWithLogin(data, username);
+                })
+                .fail(function(err) {
+                    if (err.status == 401)
+                        alert('This user name is already taken, choose another one :)');
+                    else if (err.status == 400)
+                        alert('Too many players currenlty logged, please try again later :)');
+                    else
+                        alert('Internal Server error contact OP ;)');
+                });
             }
 
-            loginUser(username);
-        });
+            function seedMapWithLogin(position, username) {
+                var marker = new google.maps.Marker({
+                    position: position,
+                    map: map,
+                    title: 'Position',
+                    draggable: true
+                });
+                var circle = new google.maps.Circle({
+                    map: map,
+                    radius: 140,
+                    strokeColor: '#FF0000',
+                    strokeOpacity: 0.8,
+                    strokeWeight: 2,
+                    fillColor: '#FF0000',
+                    fillOpacity: 0.35,
+                });
+                circle.bindTo('center', marker, 'position');
 
-        function loginUser(username) {
-            $.ajax({
-                type: 'POST',
-                url: '/api/login',
-                data: JSON.stringify({ username: username, socketId: socket.io.engine.id }),
-                contentType: 'application/json; charset=utf-8',
-                dataType: 'json'
-            })
-            .done(function(data) {
-                socket.emit('join', username);
-                seedMapWithLogin(data, username);
-            })
-            .fail(function(err) {
-                if (err.status == 401)
-                    alert('This user name is already taken, choose another one :)');
-                else if (err.status == 400)
-                    alert('Too many players currenlty logged, please try again later :)');
-                else
-                    alert('Internal Server error contact OP ;)');
+                marker.addListener('dragend', function(loc) {
+                    $.ajax({
+                        type: 'POST',
+                        url: '/api/users/' + username + '/move/' + loc.latLng.lat() + '/' + loc.latLng.lng(),
+                        contentType: 'application/json; charset=utf-8',
+                        dataType: 'json'
+                    }).done(function(data) {
+                        sendLog('Moved to: [' + data.lat + ', ' + data.lng + ']');
+                    }).fail(function(err) {
+                        if (err.status == 401)
+                            alert('Unable to move search pointer, try login\' out and in again');
+                        else
+                            alert('Internal Server error contact OP ;)');
+                    });
+                });
+                map.panTo(position);
+            }
+        }
+
+        function init() {
+            initMap(function(map) {
+                initSockets();
+                initScans(map);
+                initButtonInteraction(map);
             });
         }
 
-        function initMap() {
+        function initMap(callback) {
             var styles = [
               {
                 "featureType": "poi",
@@ -118,96 +162,89 @@
             map = new google.maps.Map(document.getElementById('map'), gMapOptions);
             map.mapTypes.set('map_style', styledMap);
             map.setMapTypeId('map_style');
-        }
 
-        function seedMapWithLogin(position, username) {
-            var marker = new google.maps.Marker({
-                position: position,
-                map: map,
-                title: 'Position',
-                draggable: true
-            });
-            var circle = new google.maps.Circle({
-                map: map,
-                radius: 140,
-                strokeColor: '#FF0000',
-                strokeOpacity: 0.8,
-                strokeWeight: 2,
-                fillColor: '#FF0000',
-                fillOpacity: 0.35,
-            });
-            circle.bindTo('center', marker, 'position');
-
-            marker.addListener('dragend', function(loc) {
-                $.ajax({
-                    type: 'POST',
-                    url: '/api/users/' + username + '/move/' + loc.latLng.lat() + '/' + loc.latLng.lng(),
-                    contentType: 'application/json; charset=utf-8',
-                    dataType: 'json'
-                }).done(function(data) {
-                    sendLog('Moved to: [' + data.lat + ', ' + data.lng + ']');
-                }).fail(function(err) {
-                    if (err.status == 401)
-                        alert('Unable to move search pointer, try login\' out and in again');
-                    else
-                        alert('Internal Server error contact OP ;)');
-                });
-            });
-            map.panTo(position);
+            callback(map);
         }
 
         function initSockets() {
             socket.on('connect', function() {
                 console.log('[s] socket connected: ' + socket.io.engine.id);
             });
+        }
 
-            socket.on('new_pokemons', function (pokemonsJson) {
-                for (var i = 0; i < pokemonsJson.length; i++) {
-                    var pokemon = pokemonsJson[i];
-                    pokemon.foundDate = new Date();
+        function initScans(map) {
+            scan(map);
 
-                    if (_.includes(encounterIdsSeen, pokemon.encounterId))
-                        continue;
+            setInterval(function() {
+                scan(map);
+            }, 7000);
 
-                    encounterIdsSeen.push(pokemon.encounterId);
-                    sendLog(pokemon.name + ' found at ' + pokemon.foundDate.getHours() + ':'
-                            + pokemon.foundDate.getMinutes() + ':' + pokemon.foundDate.getSeconds());
+            function scan(map) {
+                var mapCenter = map.getCenter();
 
-                    var marker = new google.maps.Marker({
-                        position: { lat: pokemon.lat, lng: pokemon.lng },
-                        map: map,
-                        title: pokemon.name,
-                        icon: {
-                            url: pokemon.image,
-                            scaledSize: new google.maps.Size(30, 30),
-                            origin: new google.maps.Point(0, 0),
-                            anchor: new google.maps.Point(15, 15)
-                        }
-                    });
+                $.ajax({
+                    type: 'GET',
+                    url: '/api/pokemons/' + mapCenter.lat() + '/' + mapCenter.lng(),
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json'
+                }).done(function(pokemonsJson) {
+                    for (var i = 0; i < pokemonsJson.length; i++) {
+                        var pokemon = pokemonsJson[i];
+                        pokemon.foundDate = new Date();
 
-                    var infowindow = new google.maps.InfoWindow();
-                    marker.addListener('click', function() {
-                        var timeRemaining = (pokemon.expirationTimeMs - (new Date()).getTime()) / 1000;
-                        infowindow.setContent('<div>Time remaining: ' + Math.floor(timeRemaining) + ' s</div>');
-                        infowindow.open(map, this);
-                    });
+                        if (_.includes(encounterIdsSeen, pokemon.id))
+                            continue;
 
-                    (function (m) {
-                        setTimeout(function() {
-                            m.setMap(null);
-                            m = null;
-                        }, pokemon.expirationTimeMs - (new Date()).getTime());
-                    })(marker);
-                }
-            });
+                        encounterIdsSeen.push(pokemon.id);
+                        sendLog(pokemon.name + ' found at ' + pokemon.foundDate.getHours() + ':'
+                                + pokemon.foundDate.getMinutes() + ':' + pokemon.foundDate.getSeconds());
+
+                        var marker = new google.maps.Marker({
+                            position: pokemon.location,
+                            map: map,
+                            title: pokemon.name,
+                            icon: {
+                                url: './images/pokemons/' + (pokemon.typeId+'').lpad("0", 3) + '.png',
+                                scaledSize: new google.maps.Size(30, 30),
+                                origin: new google.maps.Point(0, 0),
+                                anchor: new google.maps.Point(15, 15)
+                            }
+                        });
+
+                        var infowindow = new google.maps.InfoWindow();
+                        marker.addListener('click', function() {
+                            infowindow.setContent('<div>Time remaining: ' + Math.floor(pokemon.ttl / 1000) + ' s</div>');
+                            infowindow.open(map, this);
+                        });
+
+                        (function (m) {
+                            setTimeout(function() {
+                                m.setMap(null);
+                                m = null;
+                            }, pokemon.ttl);
+                        })(marker);
+                    }
+
+
+                }).fail(function(err) {
+                    alert('Internal Server error contact OP ;)');
+                });
+            }
         }
 
         function sendLog(message) {
             console.log('[+] ' + message);
             $('#message').html(message);
         }
+
+        String.prototype.lpad = function(padString, length) {
+            var str = this;
+            while (str.length < length)
+                str = padString + str;
+            return str;
+        }
     </script>
 
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCbzsEJSkK1PWvgPKqRkP8mSGWJPvx_jVU&signed_in=false&callback=initMap"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCbzsEJSkK1PWvgPKqRkP8mSGWJPvx_jVU&signed_in=false&callback=init"></script>
 </body>
 </html>

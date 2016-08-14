@@ -1,5 +1,7 @@
 'use strict';
 
+var _ = require('lodash');
+
 var User = require('./server/user');
 var UsersManager = require('./server/usersManager');
 var AccountsManager = require('./server/accountsManager');
@@ -60,6 +62,46 @@ Server.app.post('/api/users/:username/move/:lat/:lng', (req, res) => {
             res.status(200).send(msg);
             res.end();
         }
+    });
+});
+
+Server.app.get('/api/pokemons/:lat/:lng', (req, res) => {
+    var coord = { lat: Number(req.params.lat), lng: Number(req.params.lng) };
+
+    Server.elasticClient.search({
+        index: 'pkmn',
+        type: 'pokemons',
+        body: {
+            query: {
+                "filtered": {
+                  "query": {
+                    "match_all": {}
+                  },
+                  "filter": {
+                    "geo_distance": {
+                      "distance": "3km",
+                      "location": {
+                        "lat": coord.lat,
+                        "lon": coord.lng
+                      }
+                    }
+                  }
+                }
+            }
+        }
+    }, (err, resp) => {
+        if (err) {
+            res.status(500).send({ 'message': 'Internal server error' });
+            res.end();
+            return;
+        }
+
+        var result = _.map(resp.hits.hits, (hit) => {
+            return {id: hit._id, ttl: hit._ttl, name: hit._source.name, typeId: hit._source.typeId, location: { lat: hit._source.location.lat, lng: hit._source.location.lon } }
+        });
+
+        res.status(200).send(result);
+        res.end();
     });
 });
 

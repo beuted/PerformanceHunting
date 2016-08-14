@@ -1,6 +1,8 @@
 'use strict';
 
 var PokemonGO = require('pokemon-go-node-api');
+var _ = require('lodash');
+
 var Server = require('./server');
 
 class User {
@@ -43,8 +45,26 @@ class User {
             this.account.move(lookingPoints[this.lookingPointIndex], (err, res) => {
                 if (!err) {
                     this.account.scan((pokemonsSeen) => {
-                        if (pokemonsSeen.length > 0)
-                            Server.io.sockets.emit('new_pokemons', pokemonsSeen);
+                        if (pokemonsSeen.length > 0) {
+                            // Send entries to elastic search
+                            var requestBody = [];
+                             _.each(pokemonsSeen, pokemon => {
+                                var ttl = Math.floor((pokemon.expirationTimeMs - (new Date()).getTime()) / 1000);
+                                requestBody.push(
+                                    { create:  { _index: 'pkmn', _type: 'pokemons', _id: pokemon.encounterId, _ttl: `${ttl}s` } }
+                                );
+                                requestBody.push(
+                                    { name: pokemon.name, typeId: pokemon.typeId, location: { lat: pokemon.lat, lon: pokemon.lng } }
+                                );
+                            });
+
+                            Server.elasticClient.bulk({
+                                body: requestBody
+                            }, (err, resp) => {
+                                if (err)
+                                    console.error(`[error] Sending pokemons to elasticSearch failed\n-> err: ${JSON.stringify(err)}`);
+                            });
+                        }
 
                         this.lookingPointIndex = (this.lookingPointIndex + 1) % (lookingPoints.length);
                     });
