@@ -41,18 +41,18 @@ Server.app.post('/api/login', (req, res) => {
     });
 });
 
-Server.app.post('/api/move', (req, res) => {
-    var json = req.body;
-    var locationObj = { type: 'coords', coords: { latitude: json.location.lat, longitude: json.location.lng } };
+Server.app.post('/api/users/:username/move/:lat/:lng', (req, res) => {
+    var coord = { lat: Number(req.params.lat), lng: Number(req.params.lng) };
+    var locationObj = { type: 'coords', coords: { latitude: coord.lat, longitude: coord.lng } };
 
-    var user = usersManager.getUser(json.username);
+    var user = usersManager.getUser(req.params.username);
     if (user == undefined) {
         res.status(401).send({ 'message': 'Unknown user' });
         res.end();
         return;
     }
 
-    user.move(json.location, (err, msg) => {
+    user.move({ lat: coord.lat, lng: coord.lng }, (err, msg) => {
         if (err) {
             res.status(500).send({ 'message': err });
             res.end();

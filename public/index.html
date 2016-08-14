@@ -141,8 +141,7 @@
             marker.addListener('dragend', function(loc) {
                 $.ajax({
                     type: 'POST',
-                    url: '/api/move',
-                    data: JSON.stringify({ username: username, location: loc.latLng }),
+                    url: '/api/users/' + username + '/move/' + loc.latLng.lat() + '/' + loc.latLng.lng(),
                     contentType: 'application/json; charset=utf-8',
                     dataType: 'json'
                 }).done(function(data) {
