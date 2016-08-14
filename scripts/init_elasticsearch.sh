@@ -10,6 +10,11 @@ curl -i \
           "_ttl": {
             "enabled": true,
             "default": "1h"
+          },
+          "properties" : {
+            "location" : {
+              "type" : "geo_point"
+            }
           }
         }
       }
