@@ -41,7 +41,7 @@ class Account {
 
     scan(callback) {
         this.pokeio.Heartbeat((err, hb) => {
-            console.log(`[HB] - ${this.username} Scanning ${JSON.stringify(this.pokeio.GetLocationCoords())}`);
+            //console.log(`[HB] - ${this.username} Scanning ${JSON.stringify(this.pokeio.GetLocationCoords())}`);
             if (err || hb === undefined) {
                 console.error(`[error] Search for pokemon failed\n-> err: ${JSON.stringify(err)}`);
                 return;
@@ -68,7 +68,7 @@ class Account {
                         image: pokedexInfo.img
                     }
                     pokemonsSeen.push(pokemon);
-                    console.log('[+] ' + pokedexInfo.name + ' found: ' + JSON.stringify(pokemon));
+                    //console.log('[+] ' + pokedexInfo.name + ' found: ' + JSON.stringify(pokemon));
                 }
             }
 
