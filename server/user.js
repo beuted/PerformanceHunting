@@ -22,7 +22,7 @@ class User {
         }
         this.account = account;
         this._initScan();
-        callback(null, account.location);
+        callback(null, account.seedLocation);
     }
 
     move(newLocation, callback) {
@@ -41,50 +41,9 @@ class User {
         this.heartbeatId = setInterval(() => {
             var lookingPoints = getSurroundingPoints(this.location);
 
-            var locationObj = {
-                type: 'coords',
-                coords: {
-                    latitude: lookingPoints[this.lookingPointIndex].lat,
-                    longitude: lookingPoints[this.lookingPointIndex].lng
-                }
-            };
-
-            this.account.pokeio.SetLocation(locationObj, (err, msg) => {
-                if (err) {
-                    var errorMsg = `[error] Unable to move to: ${JSON.stringify(locationObj.coords)} as ${this.username}"`;
-                    console.error(`${errorMsg}\n-> err: ${JSON.stringify(err)}`);
-                } else {
-                    this.account.pokeio.Heartbeat((err, hb) => {
-                        console.log(`[HB] - ${this.username} Scanning ${JSON.stringify(locationObj.coords)}`);
-                        if (err || hb === undefined) {
-                            console.error(`[error] Search for pokemon failed\n-> err: ${JSON.stringify(err)}`);
-                            return;
-                        }
-
-                        //TODO(b.jehanno): Store this in a fancy DB (elastic search ?)
-                        var pokemonsSeen = [];
-                        if (!hb.cells[0] || (hb.cells[0].Fort.length == 0 && hb.cells[0].NearbyPokemon.length == 0))
-                            console.log(`[warning] ${this.username} seems to have reach the rate limit`);
-
-                        for (var i = hb.cells.length - 1; i >= 0; i--) {
-                            for (var j = hb.cells[i].MapPokemon.length - 1; j >= 0; j--)
-                            {
-
-                                var currentPokemon = hb.cells[i].MapPokemon[j];
-                                var pokedexInfo = this.account.pokeio.pokemonlist[parseInt(currentPokemon.PokedexTypeId)-1]; //TODO(b.jehanno): let's store in client
-                                var pokemon = {
-                                    encounterId: currentPokemon.EncounterId.toNumber(),
-                                    name: pokedexInfo.name,
-                                    lat: currentPokemon.Latitude,
-                                    lng: currentPokemon.Longitude,
-                                    expirationTimeMs: currentPokemon.ExpirationTimeMs.toNumber() != -1
-                                        ? currentPokemon.ExpirationTimeMs.toNumber() : 15*60*1000, //When expirationTime = -1 it means that it is between 15 and 30 min
-                                    image: pokedexInfo.img
-                                }
-                                pokemonsSeen.push(pokemon);
-                                console.log('[+] ' + pokedexInfo.name + ' found: ' + JSON.stringify(pokemon));
-                            }
-                        }
+            this.account.move(lookingPoints[this.lookingPointIndex], (err, res) => {
+                if (!err) {
+                    this.account.scan((pokemonsSeen) => {
                         if (pokemonsSeen.length > 0)
                             Server.io.sockets.emit('new_pokemons', pokemonsSeen);
 
