@@ -2,6 +2,8 @@
 
 Let's catch 'em all yo!
 
+I have deployed a version the app here http://pkmn.csgo-mates.com *there is only 7 accounts so don't share it too much ;)*
+
 ## Running the app
 
 * Install elastic-search and have it running on the default port : `9200` (or modify config.js)
@@ -15,6 +17,8 @@ Let's catch 'em all yo!
 
 * [\_] Add push notifications when pokemon pops
 * [\_] Allow to filter on pokemon type
+* [\_] Remove socket.io and use the polling to know if a user disconnected
+* [\_] Fake device info for each account (See `pokeio.SetDeviceInfo()`)
 * [✓] Use `expirationTimeMs` to Show time remaining in the UI and remove the pokemon at the right time
 * [✓] Allow user to change his position from the UI 
 * [✓] Allow user to enter his account on the front and use it to make calls to pokemon API
