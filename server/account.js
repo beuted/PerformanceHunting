@@ -43,7 +43,10 @@ class Account {
         this.pokeio.Heartbeat((err, hb) => {
             //console.log(`[HB] - ${this.username} Scanning ${JSON.stringify(this.pokeio.GetLocationCoords())}`);
             if (err || hb === undefined) {
-                console.error(`[error] Search for pokemon failed\n-> err: ${JSON.stringify(err)}`);
+                console.error(`[error] Search for pokemon failed (will try to renew access-token)\n-> err: ${JSON.stringify(err)}`);
+
+                // Reconnect with account
+                this.init(this.seedLocation);
                 return;
             }
 
@@ -81,8 +84,11 @@ class Account {
 
         this.pokeio.SetLocation(locationObj, (err, msg) => {
             if (err) {
-                var errorMsg = `[error] Unable to move to: ${JSON.stringify(locationObj.coords)} as ${this.login}"`;
+                var errorMsg = `[error] Unable to move to: ${JSON.stringify(locationObj.coords)} as ${this.login} (will try to renew access-token)"`;
                 console.error(`${errorMsg}\n-> err: ${JSON.stringify(err)}`);
+
+                // Reconnect with account
+                this.init(this.seedLocation);
                 callback(errorMsg, null);
             } else {
                 callback(null, msg);
