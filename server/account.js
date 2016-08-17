@@ -91,6 +91,7 @@ class Account {
                 this.init(this.seedLocation);
                 callback(errorMsg, null);
             } else {
+                this.seedLocation = location;
                 callback(null, msg);
             }
         });
