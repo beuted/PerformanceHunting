@@ -21,7 +21,8 @@ class AccountsManager {
     }
 
     assignAccount(username) {
-        var availableAccount = _.find(this.accounts, account => {
+        var shuffledAccounts =  _.shuffle(this.accounts);
+        var availableAccount = _.find(shuffledAccounts, account => {
             return account.isFree();
         });
 

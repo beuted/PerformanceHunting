@@ -23,13 +23,14 @@ class User {
         }
         this.account = account;
         this._initScan();
+        console.log(`[i] User ${this.username} logged as ${this.account.login}`);
         callback(null, account.seedLocation);
     }
 
     move(newLocation, callback) {
         this.lookingPointIndex = 0;
         this.location = newLocation;
-        console.log(`[i] User ${this.username} moved to ${JSON.stringify(newLocation)}`);
+        console.log(`[i] User ${this.username} moved as ${this.account.login} to ${JSON.stringify(newLocation)}`);
         callback(null, newLocation);
     }
 
