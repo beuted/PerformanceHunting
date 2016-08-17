@@ -56,6 +56,9 @@ class User {
                                 else
                                     ttl = Math.floor((pokemon.expirationTimeMs - (new Date()).getTime()) / 1000);
 
+                                if (ttl <= 0)
+                                    return;
+
                                 requestBody.push(
                                     { create:  { _index: 'pkmn', _type: 'pokemons', _id: pokemon.encounterId, _ttl: `${ttl}s` } }
                                 );
