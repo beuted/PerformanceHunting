@@ -2,8 +2,6 @@
 
 Let's catch 'em all yo!
 
-I have deployed a version the app here http://pkmn.csgo-mates.com *there is only 7 accounts so don't share it too much ;)*
-
 ## Running the app
 
 * Install elastic-search and have it running on the default port : `9200` (or modify config.js)
